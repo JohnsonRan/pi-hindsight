@@ -61,6 +61,12 @@ describe("resolveConfig", () => {
   it("prefers explicit HOME over the system home and lets env override its bank", () => {
     const cwd = tmp();
     const HOME = tmp();
+    const systemAgentDir = join(homedir(), ".pi", "agent");
+    mkdirSync(systemAgentDir, { recursive: true });
+    writeFileSync(
+      join(systemAgentDir, "hindsight.json"),
+      '{ "banks": { "project": { "bankId": "system-home" } } }',
+    );
     mkdirSync(join(HOME, ".pi", "agent"), { recursive: true });
     writeFileSync(
       join(HOME, ".pi", "agent", "hindsight.jsonc"),
