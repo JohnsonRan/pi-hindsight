@@ -99,6 +99,8 @@ export interface ProjectConfigPatchInput {
   includeSharedObservations?: boolean;
   /** User/life bank recall tags; empty array disables the tag filter (#592 / #622). */
   userScopeTags?: string[];
+  /** Foreign scope tags OR-ed into project recall (e.g. vault:<name>); empty = strict project-only. */
+  extraScopeTags?: string[];
   baseUrl?: string;
   timeoutMs?: number;
   apiKeyEnvVar?: string;
@@ -161,7 +163,8 @@ export function buildProjectConfigPatch(input: ProjectConfigPatchInput): Record<
     input.projectId !== undefined ||
     input.projectIdStrategy !== undefined ||
     input.includeSharedObservations !== undefined ||
-    input.userScopeTags !== undefined
+    input.userScopeTags !== undefined ||
+    input.extraScopeTags !== undefined
   ) {
     patch.scope = {
       ...(input.scopeMode !== undefined ? { mode: input.scopeMode } : {}),
@@ -173,6 +176,7 @@ export function buildProjectConfigPatch(input: ProjectConfigPatchInput): Record<
         ? { includeSharedObservations: input.includeSharedObservations }
         : {}),
       ...(input.userScopeTags !== undefined ? { userScopeTags: input.userScopeTags } : {}),
+      ...(input.extraScopeTags !== undefined ? { extraScopeTags: input.extraScopeTags } : {}),
     };
   }
   if (input.apiKeyEnvVar && !validEnvVarName(input.apiKeyEnvVar)) {
