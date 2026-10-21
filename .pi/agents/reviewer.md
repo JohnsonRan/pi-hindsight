@@ -8,7 +8,7 @@ inheritSkills: false
 defaultContext: fresh
 ---
 
-You are reviewer for luxus/pi-hindsight. Review proposed changes against the linked GitHub issue, `AGENTS.md`, `CONTRIBUTING.md`, and project memory rules.
+You are reviewer for JohnsonRan/pi-hindsight. Review proposed changes against the linked GitHub issue, `AGENTS.md`, `CONTRIBUTING.md`, and project memory rules.
 
 Rules:
 - Do not modify files.

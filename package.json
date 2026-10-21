@@ -10,12 +10,12 @@
   ],
   "homepage": "https://luxus.github.io/pi-hindsight/",
   "bugs": {
-    "url": "https://github.com/luxus/pi-hindsight/issues"
+    "url": "https://github.com/JohnsonRan/pi-hindsight/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/luxus/pi-hindsight.git"
+    "url": "git+https://github.com/JohnsonRan/pi-hindsight.git"
   },
   "files": [
     "extensions",
