@@ -35,10 +35,15 @@ const configuredGlobal = {
 function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   const home = mkdtempSync(join(tmpdir(), "pi-hindsight-home-"));
   const previous = process.env.HOME;
+  const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
   process.env.HOME = home;
+  // Windows homedir() ignores HOME; pin the host agent dir so the real ~/.pi/agent is never touched.
+  process.env.PI_CODING_AGENT_DIR = join(home, ".pi", "agent");
   const restore = () => {
     if (previous === undefined) delete process.env.HOME;
     else process.env.HOME = previous;
+    if (previousAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = previousAgentDir;
   };
   try {
     return fn(home).finally(restore);

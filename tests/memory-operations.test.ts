@@ -60,7 +60,10 @@ describe("memory operations", () => {
     const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-ops-project-"));
     const home = mkdtempSync(join(tmpdir(), "pi-hindsight-ops-home-"));
     const oldHome = process.env.HOME;
+    const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
     process.env.HOME = home;
+    // Windows homedir() ignores HOME; pin the host agent dir so the real ~/.pi/agent is never touched.
+    process.env.PI_CODING_AGENT_DIR = join(home, ".pi", "agent");
     try {
       const operations = createMemoryOperations({
         getClient: () => client(),
@@ -76,6 +79,8 @@ describe("memory operations", () => {
       expect(written.hindsight.baseUrl).toBe("http://global");
     } finally {
       process.env.HOME = oldHome;
+      if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+      else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
     }
   });
 

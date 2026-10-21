@@ -72,9 +72,12 @@ vi.mock("../extensions/banks/bank-operations.js", async (importOriginal) => {
 
 describe("extension hooks", () => {
   const originalHome = process.env.HOME;
+  const originalAgentDir = process.env.PI_CODING_AGENT_DIR;
 
   beforeEach(() => {
     process.env.HOME = mkdtempSync(join(tmpdir(), "pi-hindsight-home-"));
+    // Windows homedir() ignores HOME; pin the host agent dir so the real ~/.pi/agent is never touched.
+    process.env.PI_CODING_AGENT_DIR = join(process.env.HOME, ".pi", "agent");
     vi.useRealTimers();
     vi.clearAllMocks();
     mocked.client.recall.mockImplementation(async (..._args: unknown[]) => ({
@@ -90,6 +93,11 @@ describe("extension hooks", () => {
       delete process.env.HOME;
     } else {
       process.env.HOME = originalHome;
+    }
+    if (originalAgentDir === undefined) {
+      delete process.env.PI_CODING_AGENT_DIR;
+    } else {
+      process.env.PI_CODING_AGENT_DIR = originalAgentDir;
     }
   });
 
