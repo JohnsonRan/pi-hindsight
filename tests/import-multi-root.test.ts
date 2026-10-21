@@ -75,8 +75,8 @@ describe("multi-root Pi session import orchestration", () => {
     writeFileSync(invalidHeader, JSON.stringify({ type: "session", id: "no-cwd" }));
     writeFileSync(malformedHeader, "{not json}\n");
     writeFileSync(outside, sessionJsonl({ id: "outside", cwd: project, content: "outside root" }));
-    const canonicalProject = realpathSync(project);
-    const canonicalRoot = realpathSync(root);
+    const canonicalProject = realpathSync.native(project);
+    const canonicalRoot = realpathSync.native(root);
 
     const result = await discoverMultiRootPiSessionHeaders({ approvedRoots: [root] });
 
@@ -122,8 +122,11 @@ describe("multi-root Pi session import orchestration", () => {
     const nestedFile = join(nested, "nested.jsonl");
     writeFileSync(topLevel, sessionJsonl({ id: "top", cwd: project }));
     writeFileSync(nestedFile, sessionJsonl({ id: "nested", cwd: project }));
-    const canonicalProject = realpathSync(project);
-    const expectedSessionFiles = [realpathSync(nestedFile), realpathSync(topLevel)].sort();
+    const canonicalProject = realpathSync.native(project);
+    const expectedSessionFiles = [
+      realpathSync.native(nestedFile),
+      realpathSync.native(topLevel),
+    ].sort();
     const calls: Array<{
       cwd: string;
       searchDir: string;
@@ -161,7 +164,7 @@ describe("multi-root Pi session import orchestration", () => {
     expect(calls).toEqual([
       {
         cwd: canonicalProject,
-        searchDir: realpathSync(root),
+        searchDir: realpathSync.native(root),
         sessionFiles: expectedSessionFiles,
         dryRun: false,
       },
@@ -186,8 +189,8 @@ describe("multi-root Pi session import orchestration", () => {
     writeFileSync(join(root, "b.jsonl"), sessionJsonl({ id: "b", cwd: projectB }));
     writeFileSync(join(root, "invalid.jsonl"), "{not json}\n");
     const discovery = await discoverMultiRootPiSessionHeaders({ approvedRoots: [root] });
-    const cwdA = realpathSync(projectA);
-    const cwdB = realpathSync(projectB);
+    const cwdA = realpathSync.native(projectA);
+    const cwdB = realpathSync.native(projectB);
 
     const skipped = buildMultiRootProjectImportPlan({ discovery });
     expect(skipped.summary).toMatchObject({
@@ -240,7 +243,7 @@ describe("multi-root Pi session import orchestration", () => {
     mkdirSync(nested);
     writeFileSync(join(root, "session.jsonl"), sessionJsonl({ id: "session", cwd: project }));
     const discovery = await discoverMultiRootPiSessionHeaders({ approvedRoots: [root] });
-    const canonicalProject = realpathSync(project);
+    const canonicalProject = realpathSync.native(project);
 
     const relativeCwd = process.cwd();
     process.chdir(nested);
@@ -602,8 +605,8 @@ describe("multi-root Pi session import orchestration", () => {
     const projectB = mkdtempSync(join(tmpdir(), "pi-hindsight-project-b-"));
     writeFileSync(join(root, "a.jsonl"), sessionJsonl({ id: "a", cwd: projectA }));
     writeFileSync(join(root, "b.jsonl"), sessionJsonl({ id: "b", cwd: projectB }));
-    const cwdA = realpathSync(projectA);
-    const cwdB = realpathSync(projectB);
+    const cwdA = realpathSync.native(projectA);
+    const cwdB = realpathSync.native(projectB);
     const calls: Array<{
       cwd: string;
       bankId: string;
@@ -723,10 +726,10 @@ describe("multi-root Pi session import orchestration", () => {
     const fileB = join(rootB, "b.jsonl");
     writeFileSync(fileA, sessionJsonl({ id: "a", cwd: projectA }));
     writeFileSync(fileB, sessionJsonl({ id: "b", cwd: projectB }));
-    const canonicalRootA = realpathSync(rootA);
-    const canonicalRootB = realpathSync(rootB);
-    const canonicalProjectA = realpathSync(projectA);
-    const canonicalProjectB = realpathSync(projectB);
+    const canonicalRootA = realpathSync.native(rootA);
+    const canonicalRootB = realpathSync.native(rootB);
+    const canonicalProjectA = realpathSync.native(projectA);
+    const canonicalProjectB = realpathSync.native(projectB);
     const calls: Array<{ cwd: string; searchDir: string; dryRun?: boolean }> = [];
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) => {
       calls.push({
@@ -792,8 +795,8 @@ describe("multi-root Pi session import orchestration", () => {
     const root = mkdtempSync(join(tmpdir(), "pi-hindsight-import-root-"));
     const project = mkdtempSync(join(tmpdir(), "pi-hindsight-project-"));
     writeFileSync(join(root, "session.jsonl"), sessionJsonl({ id: "session", cwd: project }));
-    const canonicalRoot = realpathSync(root);
-    const canonicalProject = realpathSync(project);
+    const canonicalRoot = realpathSync.native(root);
+    const canonicalProject = realpathSync.native(project);
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) =>
       projectResult({
         sessionFile: join(args.searchDir ?? "", "placeholder.jsonl"),
@@ -824,10 +827,10 @@ describe("multi-root Pi session import orchestration", () => {
     const projectB = mkdtempSync(join(tmpdir(), "pi-hindsight-project-b-"));
     writeFileSync(join(rootA, "a.jsonl"), sessionJsonl({ id: "a", cwd: projectA }));
     writeFileSync(join(rootB, "b.jsonl"), sessionJsonl({ id: "b", cwd: projectB }));
-    const canonicalRootA = realpathSync(rootA);
-    const canonicalRootB = realpathSync(rootB);
-    const canonicalProjectA = realpathSync(projectA);
-    const canonicalProjectB = realpathSync(projectB);
+    const canonicalRootA = realpathSync.native(rootA);
+    const canonicalRootB = realpathSync.native(rootB);
+    const canonicalProjectA = realpathSync.native(projectA);
+    const canonicalProjectB = realpathSync.native(projectB);
     const calls: Array<{ cwd: string; searchDir: string; dryRun?: boolean }> = [];
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) => {
       calls.push({
@@ -876,7 +879,7 @@ describe("multi-root Pi session import orchestration", () => {
     writeFileSync(join(rootA, "a.jsonl"), sessionJsonl({ id: "a", cwd: projectA }));
     writeFileSync(join(rootA, "invalid.jsonl"), JSON.stringify({ type: "session", id: "no-cwd" }));
     writeFileSync(join(rootB, "b.jsonl"), sessionJsonl({ id: "b", cwd: projectB }));
-    const canonicalProjectB = realpathSync(projectB);
+    const canonicalProjectB = realpathSync.native(projectB);
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) => {
       if (args.cwd === canonicalProjectB && args.dryRun === false) {
         throw new Error("import failed with sk-live-secret-category");
@@ -917,7 +920,7 @@ describe("multi-root Pi session import orchestration", () => {
     writeFileSync(join(rootA, "a.jsonl"), sessionJsonl({ id: "a", cwd: projectA }));
     writeFileSync(join(rootA, "invalid.jsonl"), "not-json\n");
     writeFileSync(join(rootB, "b.jsonl"), sessionJsonl({ id: "b", cwd: projectB }));
-    const canonicalProjectB = realpathSync(projectB);
+    const canonicalProjectB = realpathSync.native(projectB);
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) => {
       if (args.cwd === canonicalProjectB && args.dryRun === false) {
         throw new Error("write failed with sk-live-secret-normal");
@@ -1006,7 +1009,7 @@ describe("multi-root Pi session import orchestration", () => {
     mkdirSync(child);
     const file = join(child, "session.jsonl");
     writeFileSync(file, sessionJsonl({ id: "session", cwd: project }));
-    const canonicalFile = realpathSync(file);
+    const canonicalFile = realpathSync.native(file);
 
     const result = await discoverMultiRootPiSessionHeaders({ approvedRoots: [root, child] });
 
@@ -1014,7 +1017,7 @@ describe("multi-root Pi session import orchestration", () => {
     expect(result.validSessionCount).toBe(1);
     expect(result.groups).toEqual([
       {
-        cwd: realpathSync(project),
+        cwd: realpathSync.native(project),
         sessions: [{ sessionFile: canonicalFile, sessionId: "session" }],
       },
     ]);
@@ -1049,8 +1052,8 @@ describe("multi-root Pi session import orchestration", () => {
     const project = mkdtempSync(join(tmpdir(), "pi-hindsight-project-"));
     const file = join(root, "session.jsonl");
     writeFileSync(file, sessionJsonl({ id: "session", cwd: project }));
-    const canonicalRoot = realpathSync(root);
-    const canonicalProject = realpathSync(project);
+    const canonicalRoot = realpathSync.native(root);
+    const canonicalProject = realpathSync.native(project);
     const delegate = vi.fn(async (args: ImportProjectSessionsArgs) =>
       projectResult({
         sessionFile: join(args.searchDir ?? "", "placeholder.jsonl"),

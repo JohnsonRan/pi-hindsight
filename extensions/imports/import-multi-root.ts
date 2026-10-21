@@ -146,7 +146,8 @@ async function canonicalPath(path: string): Promise<string> {
 
 function canonicalPathSync(path: string): string {
   try {
-    return realpathSync(path);
+    // native matches async realpath (expands Windows 8.3 short names) so mapping cwd values match discovered groups
+    return realpathSync.native(path);
   } catch {
     return resolve(path);
   }
