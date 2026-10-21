@@ -12,8 +12,8 @@ Pi Hindsight 1.0 is a Pi-first Hindsight integration. This page is the support c
 | npm                         | `>=10`                                                                                                                                                                                                                      | `package.json#engines.npm`                                           |
 | Pi runtime packages         | Tested with the `@earendil-works/pi-*` versions pinned in `devDependencies`; peer dependencies accept Pi runtime packages supplied by the host Pi installation.                                                             | `package.json#devDependencies` and `package.json#peerDependencies`   |
 | TypeBox                     | `>=1.1.24 <2`                                                                                                                                                                                                               | `package.json#peerDependencies.typebox`                              |
-| Hindsight TypeScript client | `@vectorize-io/hindsight-client ^0.9.0`                                                                                                                                                                                     | `package.json#dependencies`                                          |
-| Hindsight server            | **Hindsight 0.8+** with append `update_mode` support, compatible with `@vectorize-io/hindsight-client ^0.9.0`. Knowledge pages need server routes that match the 0.9 client; other advanced surfaces stay capability-gated. | `/hindsight:doctor`, live smoke, and official Hindsight API behavior |
+| Hindsight TypeScript client | `@vectorize-io/hindsight-client ^1.0.0`                                                                                                                                                                                     | `package.json#dependencies`                                          |
+| Hindsight server            | **Hindsight 0.8+** with append `update_mode` support, compatible with `@vectorize-io/hindsight-client ^1.0.0`. Knowledge pages need server routes that match the 1.0 client; other advanced surfaces stay capability-gated. | `/hindsight:doctor`, live smoke, and official Hindsight API behavior |
 
 ## Required Hindsight capabilities
 
@@ -30,12 +30,14 @@ If append retain is unavailable, live automatic retain is not considered support
 
 Hindsight 0.10 retired `GET /banks/{id}/profile` (HTTP 410 Gone). Bank ensure, status, guided setup, import target validation, `hindsight_bank` get, and live smoke use `GET /v1/default/banks?q=` with an exact `bank_id` match for existence. Health fallback uses that same list-banks endpoint as a server reachability ping and does not require an exact id match. That is not a public `list_banks` tool. `GET /banks/{id}/config` is not an existence check: it can 200 for a missing bank.
 
+With `@vectorize-io/hindsight-client` 1.0, recall and reflect retry when the server answers 429 or 503 (up to 3 attempts, honouring `Retry-After` with jitter). The total wait is still bounded by `hindsight.timeoutMs`. Retain is never retried by the client; failed retains stay in the local retain queue.
+
 ## Capability-gated surfaces
 
 These surfaces are part of the 1.0 Pi surface, but the exact fields and behavior can depend on the connected Hindsight server version:
 
 - advanced recall/reflect options such as trace, source facts, included chunks, response schemas, and tool-call facts
-- knowledge pages (`hindsight_knowledge`) — requires `@vectorize-io/hindsight-client ^0.9.0` and a server that exposes knowledge-base APIs
+- knowledge pages (`hindsight_knowledge`) — requires `@vectorize-io/hindsight-client ^0.9.0` or newer and a server that exposes knowledge-base APIs
 - read-only bank config/stats facts in status
 
 When a server does not expose one of these endpoints or fields, Pi Hindsight should fail with a clear unsupported-capability message rather than silently changing request shape. Admin and browsing surfaces (documents, entities, graphs, tags, memory units, mental models, directives, bank templates, operations) live in the Hindsight control-plane web UI.
