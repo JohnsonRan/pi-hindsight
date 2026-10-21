@@ -429,7 +429,7 @@ A change is done only when:
 
 ### Issue tracker
 
-Issues are tracked in GitHub Issues for `luxus/pi-hindsight` using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues are tracked in GitHub Issues for `JohnsonRan/pi-hindsight` (maintained fork; upstream `luxus/pi-hindsight` is archived) using the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

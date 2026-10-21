@@ -52,7 +52,7 @@ Avoid combining architecture changes, product behavior, and release automation i
 
 ## Work tracking
 
-GitHub Issues are the project task ledger for backlog items, current work, blockers, decisions, and follow-ups. Use the `gh` CLI from this repository to create, read, comment on, label, assign, and close issues.
+GitHub Issues are the project task ledger for backlog items, current work, blockers, decisions, and follow-ups. Use the `gh` CLI from this repository to create, read, comment on, label, assign, and close issues in `JohnsonRan/pi-hindsight` (the maintained fork; upstream `luxus/pi-hindsight` is archived). If your clone also has an `upstream` remote, run `gh repo set-default JohnsonRan/pi-hindsight` once.
 
 Do not rely on local scratch files, private harness TODOs, chat-only plans, or hidden task lists as the source of truth for project work. If a change needs tracking, create or update a GitHub issue before continuing. If a report or review produces useful work, move the accepted items into GitHub issues and remove or archive the scratch report once the issues carry the actionable content.
 

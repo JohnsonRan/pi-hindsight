@@ -2,7 +2,7 @@
 title: "Issue tracker: GitHub"
 ---
 
-Issues, PRDs, roadmap slices, current work, blockers, and follow-ups for this repo live as GitHub issues for `luxus/pi-hindsight`. Use the `gh` CLI for all operations.
+Issues, PRDs, roadmap slices, current work, blockers, and follow-ups for this repo live as GitHub issues for `JohnsonRan/pi-hindsight`, the maintained fork. The original `luxus/pi-hindsight` is archived and accepts no issues or PRs. Use the `gh` CLI for all operations.
 
 GitHub Issues are the project task ledger. Do not use harness-private TODOs, chat-only plans, local scratch reports, or hidden task lists as the source of truth for project work. If work needs tracking, create or update an issue before continuing.
 
@@ -15,7 +15,7 @@ GitHub Issues are the project task ledger. Do not use harness-private TODOs, cha
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`.
 - **Close**: `gh issue close <number> --comment "..."`.
 
-Infer the repo from `git remote -v`; `gh` does this automatically when run inside this clone.
+Target `JohnsonRan/pi-hindsight`. A clone that also has an `upstream` remote for the archived repo leaves `gh` without a default, so run `gh repo set-default JohnsonRan/pi-hindsight` once or pass `-R JohnsonRan/pi-hindsight`.
 
 ## Progress conventions
 
@@ -27,7 +27,7 @@ Infer the repo from `git remote -v`; `gh` does this automatically when run insid
 
 ## When a skill says "publish to the issue tracker"
 
-Create a GitHub issue in `luxus/pi-hindsight`.
+Create a GitHub issue in `JohnsonRan/pi-hindsight`.
 
 ## When a skill says "fetch the relevant ticket"
 
