@@ -1,5 +1,5 @@
-> [!WARNING]
-> **This project is no longer maintained.** The repository is archived and read-only, and the npm package `@luxusai/pi-hindsight` is deprecated. Existing versions keep working, but they will not receive fixes or updates.
+> [!NOTE]
+> **Maintained fork.** The original [`luxus/pi-hindsight`](https://github.com/luxus/pi-hindsight) is archived. Development continues here at [`JohnsonRan/pi-hindsight`](https://github.com/JohnsonRan/pi-hindsight).
 
 <p align="center">
   <img
