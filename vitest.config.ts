@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    // File-I/O-heavy tests run just past 5s on Windows under full-suite load (#2);
+    // other platforms keep the default so real hangs still surface quickly.
+    testTimeout: process.platform === "win32" ? 20_000 : 5_000,
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
