@@ -202,7 +202,8 @@ describe("durable explicit retain", () => {
     expect(queued[0]?.retries).toBe(1);
     expect(queued.slice(1).every((queuedJob) => queuedJob.retries === 0)).toBe(true);
     expect(await readDeadLetterQueue(queuePath)).toHaveLength(0);
-  });
+    // Seven locked queue writes take ~2s alone on Windows and exceed 5s under full-suite load.
+  }, 20_000);
 
   it("keeps explicit retain queued when existing backlog contains malformed lines", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-retain-"));
@@ -253,7 +254,7 @@ describe("durable explicit retain", () => {
     expect(queued.filter((queuedJob) => queuedJob.retries === 1)).toHaveLength(1);
     expect(queued.filter((queuedJob) => queuedJob.retries === 0)).toHaveLength(6);
     expect(await readDeadLetterQueue(queuePath)).toHaveLength(0);
-  });
+  }, 20_000);
 
   it("flushes queued explicit retain later", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-retain-"));
