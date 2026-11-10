@@ -171,7 +171,10 @@ describe("mental model injection and retain safety", () => {
       cwd: "/repo",
     });
 
-    expect(listMentalModels).toHaveBeenCalledWith("project-bank");
+    expect(listMentalModels).toHaveBeenCalledWith("project-bank", {
+      detail: "content",
+      excludePages: true,
+    });
     expect(result.rendered).toContain(MENTAL_MODELS_OPEN);
     expect(result.rendered).toContain("Prefer append mode for live sessions.");
   });
@@ -298,7 +301,11 @@ describe("mental model injection and retain safety", () => {
       bankIds: ["bank"],
       signal: controller.signal,
     });
-    expect(listMentalModels).toHaveBeenCalledWith("bank", { signal: controller.signal });
+    expect(listMentalModels).toHaveBeenCalledWith("bank", {
+      detail: "content",
+      excludePages: true,
+      signal: controller.signal,
+    });
   });
 
   it("rethrows abort from listMentalModels instead of treating it as a load failure", async () => {

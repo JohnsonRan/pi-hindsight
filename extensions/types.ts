@@ -453,6 +453,8 @@ export interface HindsightLikeClient {
       tags?: string[];
       /** Exclude large content/provenance; prefer metadata for agent list. */
       detail?: "metadata" | "content" | "full";
+      /** Leave out models that back knowledge pages. */
+      excludePages?: boolean;
       signal?: AbortSignal;
     },
   ): Promise<unknown>;

@@ -7,6 +7,7 @@ import { HindsightClient } from "@vectorize-io/hindsight-client";
 import { resolveBankExistence } from "../extensions/banks/bank-operations.js";
 import { createHindsightClient } from "../extensions/client/client.js";
 import { DEFAULT_CONFIG } from "../extensions/config/config.js";
+import { loadMentalModelsBlock } from "../extensions/lifecycle/mental-models.js";
 import { createMemoryOperations } from "../extensions/operations/memory-operation-service.js";
 import {
   cleanupSmokeBank,
@@ -165,6 +166,14 @@ try {
     },
   );
   recorder.step("recall_ok", { containsMarker: JSON.stringify(recall).includes(marker) });
+
+  // Created early so its background refresh overlaps the remaining steps; checked before success.
+  const mentalModelName = `Smoke model ${marker}`;
+  await client.createMentalModel(
+    config.bankId,
+    mentalModelName,
+    `Which smoke-test markers were retained? Include ${marker}.`,
+  );
 
   const reflection = await client.reflect(
     config.bankId,
@@ -463,6 +472,25 @@ try {
   if (importRecallText.includes(importNoiseMarker)) {
     throw new Error("strict import recall contained dropped process-noise marker");
   }
+
+  // Automatic inject must receive model content, not the list endpoint's metadata default.
+  const injectConfig = {
+    ...smokeExtensionConfig,
+    mentalModels: { ...DEFAULT_CONFIG.mentalModels, inject: true, cacheTtlMs: 0 },
+  };
+  const injected = await retry(
+    () => loadMentalModelsBlock({ client: adapter, bankId: config.bankId, config: injectConfig }),
+    (result) => result.rendered.includes(mentalModelName),
+    {
+      attempts: config.attempts,
+      delayMs: 5000,
+      onWait: ({ attempt, delayMs }) =>
+        recorder.step("mental_model_inject_wait", { attempt, delayMs }),
+      failureMessage: ({ attempts, preview }) =>
+        `mental-model inject did not render the refreshed model after ${attempts} attempts: ${preview}`,
+    },
+  );
+  recorder.step("mental_model_inject_ok", { modelCount: injected.modelCount });
 
   recorder.step("success", {
     bankId: config.bankId,

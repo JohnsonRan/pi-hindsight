@@ -131,9 +131,12 @@ async function listModelsCached(args: {
   const cached = mentalModelListCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return { models: cached.models };
   try {
-    const response = args.signal
-      ? await args.client.listMentalModels(args.bankId, { signal: args.signal })
-      : await args.client.listMentalModels(args.bankId);
+    // The list endpoint returns metadata only unless content is requested; pages are not injected.
+    const response = await args.client.listMentalModels(args.bankId, {
+      detail: "content",
+      excludePages: true,
+      ...(args.signal ? { signal: args.signal } : {}),
+    });
     const models = normalizeListResponse(response).filter(
       (model) => typeof model.content === "string" && model.content.trim().length > 0,
     );
