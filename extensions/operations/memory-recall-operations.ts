@@ -19,7 +19,7 @@ import {
   readSessionMemoryMeta,
 } from "../utils/session-memory-meta.js";
 import type { HindsightTagGroup, TagsMatch } from "../types.js";
-import type { MinScores } from "@vectorize-io/hindsight-client";
+import type { MinScores, RerankOptions } from "@vectorize-io/hindsight-client";
 
 interface ExplicitRecallFilters {
   budget?: import("../types.js").Budget;
@@ -27,6 +27,7 @@ interface ExplicitRecallFilters {
   queryTimestamp?: string;
   types?: string[];
   preferObservations?: boolean;
+  rerank?: RerankOptions;
   minScores?: MinScores;
   trace?: boolean;
   includeEntities?: boolean;
@@ -43,7 +44,10 @@ interface ExplicitRecallFilters {
   signal?: AbortSignal;
 }
 
-interface ExplicitReflectFilters extends Omit<ExplicitRecallFilters, "queryTimestamp" | "types"> {
+interface ExplicitReflectFilters extends Omit<
+  ExplicitRecallFilters,
+  "queryTimestamp" | "types" | "rerank"
+> {
   includeFacts?: boolean;
   includeToolCalls?: boolean;
   includeToolCallOutput?: boolean;
@@ -105,6 +109,7 @@ export function createRecallOperations(deps: MemoryOperationsDeps) {
           ...(filters.preferObservations !== undefined
             ? { preferObservations: filters.preferObservations }
             : {}),
+          ...(filters.rerank !== undefined ? { rerank: filters.rerank } : {}),
           ...(filters.minScores !== undefined ? { minScores: filters.minScores } : {}),
           ...(filters.trace !== undefined ? { trace: filters.trace } : {}),
           ...(filters.includeEntities !== undefined

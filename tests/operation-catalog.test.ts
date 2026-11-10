@@ -304,6 +304,8 @@ describe("operation catalog", () => {
     expect(properties.trace?.type).toBe("boolean");
     expect(properties.preferObservations?.type).toBe("boolean");
     expect(properties.minScores?.type).toBe("object");
+    expect(properties.rerank?.properties?.prune?.type).toBe("boolean");
+    expect(properties.rerank?.properties?.dedup?.type).toBe("boolean");
 
     await tool.execute(
       "call",
@@ -349,6 +351,42 @@ describe("operation catalog", () => {
           { tags: ["caller:tag"], match: "any_strict" },
         ]),
       }),
+    );
+  });
+
+  it.each([
+    undefined,
+    { prune: true },
+    { dedup: true },
+    { prune: false, dedup: false },
+    { prune: true, dedup: true },
+  ])("preserves per-call rerank settings and strict scope: %j", async (rerank) => {
+    const recall = vi.fn(async (_bank: string, _query: string, _options?: RecallOptions) => []);
+    const catalog = createOperationCatalog({
+      getClient: () => ({ ...client(), recall }),
+      getConfig: () => ({
+        ...DEFAULT_CONFIG,
+        scope: { ...DEFAULT_CONFIG.scope, projectId: "rerank-test" },
+      }),
+      getProjectBankId: () => "project-bank",
+    });
+    const tool = requireTool(catalog, "hindsight_recall");
+    const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-rerank-"));
+    await tool.execute(
+      "rerank",
+      { query: "decision", tags: ["topic:test"], ...(rerank !== undefined ? { rerank } : {}) },
+      undefined,
+      undefined,
+      { cwd, sessionManager: {} } as never,
+    );
+    const options = recall.mock.calls[0]?.[2];
+    if (rerank === undefined) expect(options).not.toHaveProperty("rerank");
+    else expect(options).toHaveProperty("rerank", rerank);
+    expect(options?.tagGroups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ tags: expect.arrayContaining(["project:rerank-test"]) }),
+        { tags: ["topic:test"], match: "any_strict" },
+      ]),
     );
   });
 

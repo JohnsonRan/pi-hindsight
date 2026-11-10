@@ -246,7 +246,10 @@ try {
   });
 
   const operationsRecall = await retry(
-    async () => operations.recall(operationsCwd, operationsMarker, "project"),
+    async () =>
+      operations.recall(operationsCwd, operationsMarker, "project", undefined, {
+        rerank: { prune: false, dedup: false },
+      }),
     (result) => JSON.stringify(result).includes(operationsMarker),
     {
       attempts: config.attempts,
