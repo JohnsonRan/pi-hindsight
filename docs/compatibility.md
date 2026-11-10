@@ -44,12 +44,6 @@ Hindsight 1.2.1 creation IDs must be non-empty, at most 192 UTF-8 bytes, and con
 
 Knowledge-page and mental-model `maxTokens` must be integers from 256 through 8192 when supplied for create/update, including dry-run previews. Omit the field to preserve the server default. The bundled knowledge-page seed remains 4096 tokens.
 
-## Explicit document scope-tag repair
-
-On Hindsight 1.2.1+, `hindsight_scope_migrate` adds explicit `action: "tag_document"` for one owned document in the currently configured, enabled Coding Bank. The default `plan` action remains read-only. Exact `bankId`/`documentId` are required for previews; mutation additionally requires `dryRun: false` and `confirm: true`.
-
-The operation only adds the current project tag and optionally removes the current legacy repo tag (`removeLegacyTag`, default false). It rejects unknown ownership and foreign project tags, preserves content/unrelated tags, sends only `add_tags`/`remove_tags`, and becomes a no-op once the requested repair is complete. It does not expose arbitrary/bulk/cross-bank tag editing or end the dual-tag window.
-
 ## Capability-gated surfaces
 
 These surfaces are part of the 1.0 Pi surface, but the exact fields and behavior can depend on the connected Hindsight server version:
@@ -58,7 +52,7 @@ These surfaces are part of the 1.0 Pi surface, but the exact fields and behavior
 - knowledge pages (`hindsight_knowledge` tree/search/get/export and dry-run mutating ops) — requires `@vectorize-io/hindsight-client ^0.9.0` or newer and a server that exposes knowledge-base APIs
 - read-only bank config/stats facts in status
 
-When a server does not expose one of these endpoints or fields, Pi Hindsight should fail with a clear unsupported-capability message rather than silently changing request shape. Broad admin and browsing surfaces (documents, entities, graphs, tags, memory units, mental models, directives, bank templates, operations) live in the Hindsight control-plane web UI; the explicit single-document scope-tag repair above is a narrowly scoped exception.
+When a server does not expose one of these endpoints or fields, Pi Hindsight should fail with a clear unsupported-capability message rather than silently changing request shape. Admin and browsing surfaces (documents, entities, graphs, tags, memory units, mental models, directives, bank templates, operations) live in the Hindsight control-plane web UI.
 
 ## 1.0 scope decision
 

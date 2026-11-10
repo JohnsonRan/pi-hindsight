@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { DEFAULT_CONFIG } from "../extensions/config/config.js";
 import { createOperationCatalog } from "../extensions/operations/operation-catalog.js";
 import type { HindsightLikeClient, ResolvedConfig } from "../extensions/types.js";
-import { buildScopeMigratePlan } from "../extensions/operations/scope-migrate.js";
 
 type RetainOptions = Parameters<HindsightLikeClient["retain"]>[2];
 type RecallOptions = Parameters<HindsightLikeClient["recall"]>[2];
@@ -76,83 +75,6 @@ describe("operation catalog", () => {
       expect(createMentalModel).toHaveBeenCalledTimes(dryRun ? 0 : 1);
     },
   );
-
-  it("keeps the default scope migration plan read-only", async () => {
-    const getClient = vi.fn(() => client());
-    const catalog = createOperationCatalog({
-      getClient,
-      getConfig: () => DEFAULT_CONFIG,
-      getProjectBankId: () => "coding",
-    });
-    const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-catalog-plan-"));
-    const tool = requireTool(catalog, "hindsight_scope_migrate");
-    const ctx = { cwd, sessionManager: {} } as never;
-    const result = await tool.execute("plan", { writeReceipt: false }, undefined, undefined, ctx);
-    expect(result.details).toEqual({ dryRun: true, rewrite: "none" });
-    expect(getClient).not.toHaveBeenCalled();
-    await expect(
-      tool.execute("unsafe-plan", { dryRun: false }, undefined, undefined, ctx),
-    ).rejects.toThrow("plan action never rewrites");
-    await expect(
-      tool.execute("missing-id", { action: "tag_document" }, undefined, undefined, ctx),
-    ).rejects.toThrow("exact bankId and documentId");
-  });
-
-  it("maps explicit document migration with preview, confirmation and abort signal", async () => {
-    const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-catalog-tag-"));
-    const config: ResolvedConfig = {
-      ...DEFAULT_CONFIG,
-      setupComplete: true,
-      scope: { ...DEFAULT_CONFIG.scope, projectId: "catalog-migration" },
-      banks: {
-        ...DEFAULT_CONFIG.banks,
-        project: { enabled: true, bankId: "coding", derive: "manual" },
-      },
-    };
-    const scope = buildScopeMigratePlan({ cwd, config, projectBankId: "coding" });
-    const getDocument = vi.fn(async () => ({
-      id: "doc",
-      bank_id: "coding",
-      tags: [scope.legacyRepoTag],
-    }));
-    const updateDocument = vi.fn(async () => ({ success: true }));
-    const catalog = createOperationCatalog({
-      getClient: () => ({ ...client(), getDocument, updateDocument }),
-      getConfig: () => config,
-      getProjectBankId: () => "coding",
-    });
-    const tool = requireTool(catalog, "hindsight_scope_migrate");
-    const params = {
-      action: "tag_document",
-      bankId: "coding",
-      documentId: "doc",
-      removeLegacyTag: true,
-    };
-    const ctx = { cwd, sessionManager: {} } as never;
-    expect((await tool.execute("preview", params, undefined, undefined, ctx)).details).toEqual({
-      dryRun: true,
-      rewrite: "none",
-    });
-    expect(updateDocument).not.toHaveBeenCalled();
-    await expect(
-      tool.execute("unconfirmed", { ...params, dryRun: false }, undefined, undefined, ctx),
-    ).rejects.toThrow("confirm: true");
-    expect(updateDocument).not.toHaveBeenCalled();
-    const signal = new AbortController().signal;
-    const applied = await tool.execute(
-      "apply",
-      { ...params, dryRun: false, confirm: true },
-      signal,
-      undefined,
-      ctx,
-    );
-    expect(applied.details).toEqual({ dryRun: false, rewrite: "document_tags" });
-    expect(updateDocument).toHaveBeenCalledWith("coding", "doc", {
-      addTags: [scope.projectTag],
-      removeTags: [scope.legacyRepoTag],
-      signal,
-    });
-  });
 
   it("registers expandable renderers for explicit memory tool results", () => {
     const catalog = createOperationCatalog({

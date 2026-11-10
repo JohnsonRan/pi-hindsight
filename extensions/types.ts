@@ -429,16 +429,6 @@ export interface HindsightLikeClient {
       observationsMission?: string;
     },
   ): Promise<unknown>;
-  getDocument?(
-    bankId: string,
-    documentId: string,
-    options?: { signal?: AbortSignal },
-  ): Promise<unknown>;
-  updateDocument?(
-    bankId: string,
-    documentId: string,
-    options: { addTags?: string[]; removeTags?: string[]; signal?: AbortSignal },
-  ): Promise<unknown>;
   getBankProfile?(bankId: string): Promise<unknown>;
   getBankStats?(bankId: string): Promise<unknown>;
   getBankConfig?(bankId: string): Promise<unknown>;

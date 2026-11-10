@@ -213,7 +213,6 @@ Every PR must complete the repository PR template. The PR body gate is intention
 - Use `metadata` only for provenance and links back to source records.
 - Do not rely on metadata for filtering behavior.
 - Default strict tag matching whenever scope isolation matters.
-- Scope-tag repair is explicit and single-document: require exact selected Coding Bank/document IDs, verified project ownership, dry-run by default, and `dryRun: false` plus `confirm: true` for incremental tag patches. Never silently rewrite or replace the full tag set.
 
 ### Bank rules
 
@@ -277,7 +276,7 @@ Required:
 Agent control plane (selected banks only; ADR-005):
 
 - `hindsight_status`, `hindsight_seed_git` (opt-in gitlog seed), `hindsight_scope`, `hindsight_config` (allowlisted get/patch; no raw secrets), `hindsight_bank`, `hindsight_mental_model`, `hindsight_knowledge`
-- `hindsight_scope_migrate` (default read-only plan + local receipt; explicit `tag_document` previews or confirms one owned document's incremental tag repair; never silent rewrite)
+- `hindsight_scope_migrate` (dry-run dual-tag / legacy guidance + local receipt; never silent rewrite)
 
 Human surface (thin TUI):
 

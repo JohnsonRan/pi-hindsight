@@ -6,8 +6,7 @@ import {
   projectScopeTag,
   resolveProjectIdentity,
 } from "../banks/banking.js";
-import type { HindsightLikeClient, ResolvedConfig } from "../types.js";
-import { isMemorySetupComplete } from "../config/setup-gate.js";
+import type { ResolvedConfig } from "../types.js";
 import { hostConfigDirName, projectStateDir } from "../config/paths.js";
 
 export interface ScopeMigratePlan {
@@ -176,78 +175,4 @@ export async function writeScopeMigrateReceipt(
   const receipt: ScopeMigrateReceipt = { ...plan, receiptPath };
   await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
   return receipt;
-}
-
-export interface DocumentScopeMigrationOptions {
-  bankId: string;
-  documentId: string;
-  dryRun?: boolean;
-  confirm?: boolean;
-  removeLegacyTag?: boolean;
-  signal?: AbortSignal;
-}
-
-/** Explicit single-document repair; the default migration plan remains read-only. */
-export async function migrateDocumentScopeTags(
-  args: DocumentScopeMigrationOptions & {
-    cwd: string;
-    config: ResolvedConfig;
-    projectBankId: string;
-    client: HindsightLikeClient;
-  },
-) {
-  if (
-    !args.config.enabled ||
-    !args.config.banks.project.enabled ||
-    !isMemorySetupComplete(args.config, args.cwd)
-  ) {
-    throw new Error("Document tag migration requires a configured, enabled Coding Bank");
-  }
-  if (!args.bankId || args.bankId !== args.projectBankId) {
-    throw new Error("Provide the exact current Coding Bank ID for document tag migration");
-  }
-  if (typeof args.documentId !== "string" || !args.documentId.trim())
-    throw new Error("An exact documentId is required");
-  const dryRun = args.dryRun !== false;
-  if (!dryRun && args.confirm !== true)
-    throw new Error("Document tag migration requires confirm: true with dryRun: false");
-  if (!args.client.getDocument || !args.client.updateDocument)
-    throw new Error(
-      "Document tag migration is unavailable in this client; upgrade to Hindsight SDK 1.2.1",
-    );
-  args.signal?.throwIfAborted();
-  const raw = await args.client.getDocument(
-    args.bankId,
-    args.documentId,
-    args.signal ? { signal: args.signal } : undefined,
-  );
-  const document = raw as { id?: unknown; bank_id?: unknown; tags?: unknown } | null;
-  if (!document || document.id !== args.documentId || document.bank_id !== args.bankId)
-    throw new Error("Document not found or its exact identity could not be verified");
-  if (
-    !Array.isArray(document.tags) ||
-    !document.tags.every((tag: unknown) => typeof tag === "string")
-  )
-    throw new Error("Document tags are unavailable; scope ownership cannot be verified");
-  const tags = document.tags as string[];
-  const identity = resolveProjectIdentity(args.cwd, args.config);
-  const projectTag = projectScopeTag(identity.projectId);
-  const legacyTag = legacyRepoScopeTag(identity.legacyRepoKey);
-  if (tags.some((tag) => tag.startsWith("project:") && tag !== projectTag))
-    throw new Error("Document has another project tag; manual review is required");
-  if (!tags.includes(projectTag) && !tags.includes(legacyTag))
-    throw new Error("Document does not belong to the current project scope");
-  const addTags = tags.includes(projectTag) ? [] : [projectTag];
-  const removeTags = args.removeLegacyTag === true && tags.includes(legacyTag) ? [legacyTag] : [];
-  const plan = { bankId: args.bankId, documentId: args.documentId, dryRun, addTags, removeTags };
-  if (dryRun || (!addTags.length && !removeTags.length)) return { ...plan, applied: false };
-  args.signal?.throwIfAborted();
-  const result = await args.client.updateDocument(args.bankId, args.documentId, {
-    ...(addTags.length ? { addTags } : {}),
-    ...(removeTags.length ? { removeTags } : {}),
-    ...(args.signal ? { signal: args.signal } : {}),
-  });
-  if ((result as { success?: boolean } | null)?.success === false)
-    throw new Error("Document tag migration was not applied");
-  return { ...plan, applied: true };
 }

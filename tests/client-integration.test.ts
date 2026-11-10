@@ -69,21 +69,6 @@ describe("Hindsight client adapter integration", () => {
         sendJson(res, 200, { text: "reflection" });
         return;
       }
-      if (req.url === "/v1/default/banks/test-bank/documents/doc-1") {
-        sendJson(
-          res,
-          200,
-          req.method === "GET"
-            ? {
-                id: "doc-1",
-                bank_id: "test-bank",
-                tags: ["repo:old", "topic:api"],
-                original_text: "unchanged text",
-              }
-            : { success: true },
-        );
-        return;
-      }
       if (req.method === "GET" && req.url === "/v1/default/banks/test-bank/config") {
         sendJson(res, 200, { config: { retain_custom_instructions: "Read from db" } });
         return;
@@ -249,27 +234,6 @@ describe("Hindsight client adapter integration", () => {
       else expect(body).toHaveProperty("rerank", rerank);
     },
   );
-
-  it("reads exact document metadata and sends only incremental tag fields", async () => {
-    const client = createHindsightClient({
-      ...DEFAULT_CONFIG,
-      hindsight: { ...DEFAULT_CONFIG.hindsight, baseUrl },
-    });
-    expect(await client.getDocument!("test-bank", "doc-1")).toMatchObject({
-      id: "doc-1",
-      bank_id: "test-bank",
-      tags: ["repo:old", "topic:api"],
-    });
-    await client.updateDocument!("test-bank", "doc-1", {
-      addTags: ["project:current"],
-      removeTags: ["repo:old"],
-    });
-    expect(requests.map((r) => `${r.method} ${r.url}`)).toEqual([
-      "GET /v1/default/banks/test-bank/documents/doc-1",
-      "PATCH /v1/default/banks/test-bank/documents/doc-1",
-    ]);
-    expect(requests[1]?.body).toEqual({ add_tags: ["project:current"], remove_tags: ["repo:old"] });
-  });
 
   it("does not create a bank when listBanks reports an exact bank_id match", async () => {
     const client = createHindsightClient({

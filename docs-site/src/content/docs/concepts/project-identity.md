@@ -31,9 +31,9 @@ Doctor/status (`/hindsight` doctor, debug report) shows:
 - legacy `repo:` tag
 - `scopeMigrate` dry-run findings (path-derived bank, legacy path-hash tag, weak basename identity, guidance)
 
-## Scope migration (no silent rewrite)
+## Scope migrate dry-run (no silent rewrite)
 
-The default `plan` action of `hindsight_scope_migrate` (or doctor report) remains a **read-only** migration plan:
+Use the agent tool `hindsight_scope_migrate` (or doctor report) for a **dry-run only** migration plan:
 
 - Confirms dual-tag is active
 - Flags path-derived coding banks under domain-tagged mode
@@ -41,9 +41,7 @@ The default `plan` action of `hindsight_scope_migrate` (or doctor report) remain
 - Optionally accepts a bank tag sample for hit counts
 - Writes a receipt to `.pi/hindsight/scope-migrate-receipt.json`
 
-The default plan **never** rewrites Hindsight tags or documents. On Hindsight 1.2.1+, explicit `action: "tag_document"` can preview or confirm one owned document's incremental tag repair. It requires exact Coding Bank/document IDs; writes require `dryRun: false` and `confirm: true`. Only the current project tag is added and, optionally, the current legacy repo tag removed. Unknown ownership or foreign project tags are rejected. See [the upgrade guide](/pi-hindsight/guides/upgrading-to-domain-banks/#repair-one-owned-document) for examples.
-
-For unknown historical path tags or full rebuilds:
+It **never** rewrites Hindsight tags or documents. For rebuilds:
 
 1. Prefer Hindsight document/bank export-import when available
 2. Otherwise reimport Pi transcripts with `replace` into the shared coding bank
