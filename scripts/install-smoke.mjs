@@ -7,16 +7,23 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
+// `npm run` sets npm_execpath to npm's JS entry; running it with node avoids npm.cmd on Windows.
+const npmCli = process.env.npm_execpath;
+const npm = (args, options) =>
+  npmCli
+    ? execFileAsync(process.execPath, [npmCli, ...args], options)
+    : execFileAsync("npm", args, options);
+
 async function main() {
   const cwd = process.cwd();
-  const pack = await execFileAsync("npm", ["pack", "--json"], { cwd });
+  const pack = await npm(["pack", "--json"], { cwd });
   const [entry] = JSON.parse(pack.stdout);
   if (!entry?.filename) throw new Error("npm pack did not return a tarball filename");
   const tarball = join(cwd, entry.filename);
   const dir = await mkdtemp(join(tmpdir(), "pi-hindsight-install-smoke-"));
   try {
-    await execFileAsync("npm", ["init", "-y"], { cwd: dir });
-    await execFileAsync("npm", ["install", tarball, "--ignore-scripts"], { cwd: dir });
+    await npm(["init", "-y"], { cwd: dir });
+    await npm(["install", tarball, "--ignore-scripts"], { cwd: dir });
     const packageJson = JSON.parse(await readFile(join(cwd, "package.json"), "utf8"));
     const packagePath = String(packageJson.name).split("/");
     const installed = JSON.parse(
