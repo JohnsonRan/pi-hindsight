@@ -221,6 +221,20 @@ describe("Hindsight client adapter integration", () => {
     });
   });
 
+  it.each([undefined, { prune: true, dedup: true }, { prune: false, dedup: false }])(
+    "serializes rerank without changing omitted defaults: %j",
+    async (rerank) => {
+      const client = createHindsightClient({
+        ...DEFAULT_CONFIG,
+        hindsight: { ...DEFAULT_CONFIG.hindsight, baseUrl },
+      });
+      await client.recall("test-bank", "query", { ...(rerank !== undefined ? { rerank } : {}) });
+      const body = requests[0]?.body;
+      if (rerank === undefined) expect(body).not.toHaveProperty("rerank");
+      else expect(body).toHaveProperty("rerank", rerank);
+    },
+  );
+
   it("does not create a bank when listBanks reports an exact bank_id match", async () => {
     const client = createHindsightClient({
       ...DEFAULT_CONFIG,

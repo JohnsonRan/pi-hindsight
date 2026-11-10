@@ -197,6 +197,28 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
               "When recalling raw facts ('world'/'experience') together with 'observation', drop raw facts superseded by a returned observation. Defaults to the configured recall.preferObservations.",
           }),
         ),
+        rerank: Type.Optional(
+          Type.Object(
+            {
+              prune: Type.Optional(
+                Type.Boolean({
+                  description:
+                    "Drop irrelevant results when a decision model is configured; no extra model request.",
+                }),
+              ),
+              dedup: Type.Optional(
+                Type.Boolean({
+                  description:
+                    "Drop repeated facts when a decision model is configured; costs one extra model request.",
+                }),
+              ),
+            },
+            {
+              description:
+                "Decision-model Recall controls. Omitted fields inherit bank/server defaults; ignored without a decision model. Not enabled by Pi by default.",
+            },
+          ),
+        ),
         minScores: Type.Optional(
           Type.Unsafe<import("@vectorize-io/hindsight-client").MinScores>({
             ...Type.Object({
@@ -212,7 +234,8 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
                 Type.Number({
                   minimum: 0,
                   maximum: 1,
-                  description: "Minimum normalized reranker score (0-1).",
+                  description:
+                    "Minimum normalized reranker score (0-1). Decision-model and TypeSafe rank-only backends reject this floor with HTTP 400.",
                 }),
               ),
               final: Type.Optional(Type.Number({ description: "Minimum final ranking score." })),
@@ -287,6 +310,7 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
             ...(params.preferObservations !== undefined
               ? { preferObservations: params.preferObservations }
               : {}),
+            ...(params.rerank !== undefined ? { rerank: params.rerank } : {}),
             ...(params.minScores !== undefined ? { minScores: params.minScores } : {}),
             ...(params.budget ? { budget: params.budget } : {}),
             ...(params.maxTokens !== undefined ? { maxTokens: params.maxTokens } : {}),

@@ -32,6 +32,14 @@ Hindsight 0.10 retired `GET /banks/{id}/profile` (HTTP 410 Gone). Bank ensure, s
 
 With `@vectorize-io/hindsight-client` 1.x, recall and reflect retry when the server answers 429 or 503 (up to 3 attempts, honouring `Retry-After` with jitter). The total wait is still bounded by `hindsight.timeoutMs`. Retain is never retried by the client; failed retains stay in the local retain queue.
 
+## Decision-model Recall controls
+
+`hindsight_recall` accepts `rerank: { prune: true, dedup: true }` on Hindsight 1.2+. `prune` drops irrelevant candidates without another model request; `dedup` drops repeated facts with one extra decision-model request and its latency. Both are ignored unless the server has a decision model configured for Recall.
+
+Omitting `rerank` or either field inherits that field's bank/server default. Explicit `false` overrides an enabled default. Pi does not enable these controls or mirror them in configuration: automatic Recall continues to inherit the bank/server defaults. Configure those defaults through Hindsight's control plane when wanted.
+
+Decision-model and TypeSafe rank-only backends reject `minScores.reranker` with HTTP 400 because they do not provide normalized reranker scores. Pi forwards explicit floors unchanged rather than silently weakening the request. On Hindsight 1.2.1, optional fallback after a decision-model failure is configured on the server with `HINDSIGHT_API_RECALL_DECISION_MODEL_FALLBACK=true` (default false), not with a Pi setting.
+
 ## Hindsight 1.2.1 input rules
 
 Hindsight 1.2.1 rejects new bank IDs and caller-chosen mental-model IDs that are longer than 192 UTF-8 bytes or contain `/` or control characters; new bank IDs also must not be empty or start with `_`. An empty mental-model ID still asks the server to generate one, and existing IDs stay reachable. Page and mental-model `maxTokens` must be 256–8192; the `hindsight_knowledge` and `hindsight_mental_model` tool schemas advertise the same range.

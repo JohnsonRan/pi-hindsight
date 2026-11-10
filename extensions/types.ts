@@ -1,6 +1,7 @@
 import type {
   BankTemplateManifest,
   MinScores,
+  RerankOptions,
   TagGroupAndInput,
   TagGroupLeaf,
   TagGroupNotInput,
@@ -378,6 +379,7 @@ export interface HindsightLikeClient {
     options?: {
       types?: string[];
       preferObservations?: boolean;
+      rerank?: RerankOptions;
       maxTokens?: number;
       budget?: Budget;
       queryTimestamp?: string;
