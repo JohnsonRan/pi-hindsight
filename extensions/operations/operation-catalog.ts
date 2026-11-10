@@ -885,9 +885,40 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
     }),
     defineCatalogTool({
       name: "hindsight_scope_migrate",
-      label: "Hindsight Scope Migrate Dry-Run",
-      description: `Dry-run only: plan dual-tag / legacy repo:<path-hash> → project:<id> migration. Writes a local receipt under ${PROJECT_STATE_DIR}. Never rewrites Hindsight tags or documents. Prefer Hindsight export/import or Pi transcript reimport for actual rebuilds.`,
+      label: "Hindsight Scope Migrate",
+      description: `Default action plan is read-only: inspect dual-tag / legacy repo:<path-hash> → project:<id> migration and optionally write a receipt under ${PROJECT_STATE_DIR}. Explicit action tag_document previews one current-project document in the selected Coding Bank; requires exact bankId and documentId. Writes require dryRun:false and confirm:true. Adds the current project tag, optionally removes only the current legacy repo tag, preserves unrelated tags/content. Rejects unknown or foreign project ownership. No bulk/cross-bank migration; requires Hindsight 1.2.1.`,
       parameters: Type.Object({
+        action: Type.Optional(Type.Union([Type.Literal("plan"), Type.Literal("tag_document")])),
+        bankId: Type.Optional(
+          Type.String({
+            minLength: 1,
+            description: "tag_document only: exact current Coding Bank ID, not a routing alias.",
+          }),
+        ),
+        documentId: Type.Optional(
+          Type.String({
+            minLength: 1,
+            description: "tag_document only: exact existing document ID.",
+          }),
+        ),
+        dryRun: Type.Optional(
+          Type.Boolean({
+            description:
+              "tag_document defaults true. Set false together with confirm:true to apply the tag patch.",
+          }),
+        ),
+        confirm: Type.Optional(
+          Type.Boolean({
+            description:
+              "Explicit confirmation required for tag_document writes; never bypasses scope validation.",
+          }),
+        ),
+        removeLegacyTag: Type.Optional(
+          Type.Boolean({
+            description:
+              "tag_document only: remove the current legacy repo tag after adding/preserving the current project tag. Default false.",
+          }),
+        ),
         bankTags: Type.Optional(
           Type.Array(Type.String(), {
             description:
@@ -900,16 +931,38 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
           }),
         ),
       }),
-      async execute(_id, params, _signal, _onUpdate, ctx) {
+      async execute(_id, params, signal, _onUpdate, ctx) {
         useCwd(ctx.cwd);
+        signal?.throwIfAborted();
         const operations = await loadOperations();
-        const result = await operations.scopeMigrateDryRun(ctx.cwd, {
-          ...(params.bankTags ? { bankTags: params.bankTags } : {}),
-          ...(params.writeReceipt !== undefined ? { writeReceipt: params.writeReceipt } : {}),
-        });
+        if (params.action === "tag_document" && (!params.bankId || !params.documentId))
+          throw new Error("tag_document requires exact bankId and documentId");
+        if (params.action !== "tag_document" && params.dryRun === false)
+          throw new Error(
+            "The plan action never rewrites tags; use tag_document with explicit confirmation",
+          );
+        const result =
+          params.action === "tag_document"
+            ? await operations.scopeMigrateDocument(ctx.cwd, {
+                bankId: params.bankId!,
+                documentId: params.documentId!,
+                ...(params.dryRun !== undefined ? { dryRun: params.dryRun } : {}),
+                ...(params.confirm !== undefined ? { confirm: params.confirm } : {}),
+                ...(params.removeLegacyTag !== undefined
+                  ? { removeLegacyTag: params.removeLegacyTag }
+                  : {}),
+                ...(signal ? { signal } : {}),
+              })
+            : await operations.scopeMigrateDryRun(ctx.cwd, {
+                ...(params.bankTags ? { bankTags: params.bankTags } : {}),
+                ...(params.writeReceipt !== undefined ? { writeReceipt: params.writeReceipt } : {}),
+              });
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-          details: { dryRun: true, rewrite: "none" },
+          details: {
+            dryRun: result.dryRun,
+            rewrite: "applied" in result && result.applied ? "document_tags" : "none",
+          },
         };
       },
       renderResult: renderMemoryToolTextResult,

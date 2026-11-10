@@ -59,7 +59,7 @@ Pi exposes memory tools plus an agent control plane for selected banks:
 - `hindsight_bank`
 - `hindsight_mental_model` — list is metadata-only; use get for full content
 - `hindsight_knowledge` — tree/search/get + dry-run mutating page/folder ops (knowledge-base client/server required; not auto-injected)
-- `hindsight_scope_migrate`
+- `hindsight_scope_migrate` — default read-only plan; explicit `tag_document` previews one owned Coding Bank document. Writes require exact bank/document IDs plus `dryRun: false`, `confirm: true`; see [the upgrade guide](/pi-hindsight/guides/upgrading-to-domain-banks/#repair-one-owned-document).
 
 Platform-wide bank list/delete and full control-plane browsing stay in the Hindsight web UI. Bundled mental-model templates remain available from the hub (`t`).
 

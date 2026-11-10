@@ -203,12 +203,18 @@ Agent control plane for knowledge pages (living docs over bank observations). Ac
 
 ### `hindsight_scope_migrate`
 
-Dry-run only: plan dual-tag / legacy repo:<path-hash> → project:<id> migration. Writes a local receipt under .pi/hindsight/. Never rewrites Hindsight tags or documents. Prefer Hindsight export/import or Pi transcript reimport for actual rebuilds.
+Default action plan is read-only: inspect dual-tag / legacy repo:<path-hash> → project:<id> migration and optionally write a receipt under .pi/hindsight/. Explicit action tag_document previews one current-project document in the selected Coding Bank; requires exact bankId and documentId. Writes require dryRun:false and confirm:true. Adds the current project tag, optionally removes only the current legacy repo tag, preserves unrelated tags/content. Rejects unknown or foreign project ownership. No bulk/cross-bank migration; requires Hindsight 1.2.1.
 
-| Parameter      | Type          | Required | Description                                                                                           |
-| -------------- | ------------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| `bankTags`     | array<string> | no       | Optional tag inventory sample from the coding bank (e.g. listTags). Used only for counts in the plan. |
-| `writeReceipt` | boolean       | no       | Write .pi/hindsight/scope-migrate-receipt.json (default true).                                        |
+| Parameter         | Type                 | Required | Description                                                                                                           |
+| ----------------- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `action`          | plan \| tag_document | no       |                                                                                                                       |
+| `bankId`          | string               | no       | tag_document only: exact current Coding Bank ID, not a routing alias.                                                 |
+| `documentId`      | string               | no       | tag_document only: exact existing document ID.                                                                        |
+| `dryRun`          | boolean              | no       | tag_document defaults true. Set false together with confirm:true to apply the tag patch.                              |
+| `confirm`         | boolean              | no       | Explicit confirmation required for tag_document writes; never bypasses scope validation.                              |
+| `removeLegacyTag` | boolean              | no       | tag_document only: remove the current legacy repo tag after adding/preserving the current project tag. Default false. |
+| `bankTags`        | array<string>        | no       | Optional tag inventory sample from the coding bank (e.g. listTags). Used only for counts in the plan.                 |
+| `writeReceipt`    | boolean              | no       | Write .pi/hindsight/scope-migrate-receipt.json (default true).                                                        |
 
 ## Commands
 

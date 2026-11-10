@@ -57,6 +57,6 @@ Available for the agent (control plane is agent-first; TUI is thin):
 - `hindsight_bank` — get bank or update missions (dry-run default)
 - `hindsight_mental_model` — list/get/create/update/refresh/delete (list is metadata-only; use get for full content; mutating actions dry-run by default)
 - `hindsight_knowledge` — tree/search/get/export/create_page/create_folder/update/delete for knowledge pages (mutating dry-run default; requires knowledge-base-capable client/server; pages are tool-driven, not auto-injected; export = full-bank markdown bundle only)
-- `hindsight_scope_migrate` — dry-run dual-tag / legacy `repo:` migration plan + local receipt (never rewrites)
+- `hindsight_scope_migrate` — default read-only dual-tag / legacy `repo:` plan + local receipt; explicit `tag_document` previews one owned Coding Bank document and requires exact bank/document IDs plus `dryRun: false`, `confirm: true` to apply an incremental tag repair. See [the upgrade guide](upgrading-to-domain-banks.md#repair-one-owned-document).
 
 See the generated [surface reference](surface-reference.md) for parameter schemas.

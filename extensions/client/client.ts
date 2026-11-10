@@ -221,6 +221,23 @@ export function createHindsightClient(config: ResolvedConfig): HindsightLikeClie
         validateCreationId(bankId, "Bank");
         return raw.createBank(bankId, { ...options, signal });
       }),
+    getDocument: (bankId, documentId, options) =>
+      withTimeout(
+        "hindsight getDocument",
+        timeoutMs,
+        (signal) =>
+          withRetry("getDocument", () =>
+            raw.getDocument(bankId, documentId, { ...options, signal }),
+          ),
+        options?.signal,
+      ),
+    updateDocument: (bankId, documentId, options) =>
+      withTimeout(
+        "hindsight updateDocument",
+        timeoutMs,
+        (signal) => raw.updateDocument(bankId, documentId, { ...options, signal }),
+        options.signal,
+      ),
     getBankProfile: (...args) =>
       withTimeout("hindsight getBankProfile", timeoutMs, (signal) =>
         withRetry("getBankProfile", () => raw.getBankProfile(args[0], { signal })),

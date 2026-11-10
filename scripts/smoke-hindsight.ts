@@ -37,6 +37,11 @@ const client = new HindsightClient({
 });
 const smokeExtensionConfig = {
   ...DEFAULT_CONFIG,
+  setupComplete: true,
+  banks: {
+    ...DEFAULT_CONFIG.banks,
+    project: { ...DEFAULT_CONFIG.banks.project, bankId: config.bankId },
+  },
   hindsight: {
     ...DEFAULT_CONFIG.hindsight,
     baseUrl: config.baseUrl,
@@ -463,6 +468,74 @@ try {
   if (importRecallText.includes(importNoiseMarker)) {
     throw new Error("strict import recall contained dropped process-noise marker");
   }
+
+  // Prepare a legacy-only document inside this disposable bank, never a user bank.
+  const migrationScope = await operations.scopeMigrateDryRun(operationsCwd, {
+    writeReceipt: false,
+  });
+  await client.updateDocument(config.bankId, importDocumentId, {
+    addTags: [migrationScope.legacyRepoTag, "test:scope-migrate"],
+    removeTags: [migrationScope.projectTag],
+  });
+  const migrationArgs = {
+    bankId: config.bankId,
+    documentId: importDocumentId,
+    removeLegacyTag: true,
+  };
+  const preview = await operations.scopeMigrateDocument(operationsCwd, migrationArgs);
+  const afterPreview = await client.getDocument(config.bankId, importDocumentId);
+  if (
+    !preview.dryRun ||
+    preview.applied ||
+    !preview.addTags.includes(migrationScope.projectTag) ||
+    !preview.removeTags.includes(migrationScope.legacyRepoTag) ||
+    !afterPreview?.tags?.includes(migrationScope.legacyRepoTag) ||
+    afterPreview.tags.includes(migrationScope.projectTag)
+  )
+    throw new Error("document migration preview unexpectedly wrote tags");
+  recorder.step("document_tag_migration_preview_ok");
+  const unrelatedTags = afterPreview.tags.filter(
+    (tag) => tag !== migrationScope.legacyRepoTag && tag !== migrationScope.projectTag,
+  );
+  const applied = await operations.scopeMigrateDocument(operationsCwd, {
+    ...migrationArgs,
+    dryRun: false,
+    confirm: true,
+  });
+  const taggedDocument = await client.getDocument(config.bankId, importDocumentId);
+  if (
+    !applied.applied ||
+    !taggedDocument?.tags?.includes(migrationScope.projectTag) ||
+    taggedDocument.tags.includes(migrationScope.legacyRepoTag) ||
+    !taggedDocument.tags.includes("test:scope-migrate") ||
+    unrelatedTags.some((tag) => !taggedDocument.tags?.includes(tag)) ||
+    taggedDocument.original_text !== importDocumentText
+  )
+    throw new Error("document migration did not preserve content/unrelated tags and repair scope");
+  recorder.step("document_tag_migration_apply_ok");
+  const repeated = await operations.scopeMigrateDocument(operationsCwd, {
+    ...migrationArgs,
+    dryRun: false,
+    confirm: true,
+  });
+  if (repeated.applied) throw new Error("repeated document migration was not a no-op");
+  recorder.step("document_tag_migration_idempotent_ok");
+  await retry(
+    () =>
+      adapter.recall(config.bankId, `${importMarker} ${importKeptToolMarker}`, {
+        types: ["world", "experience"],
+        tags: [migrationScope.projectTag, "test:scope-migrate"],
+        tagsMatch: "all_strict",
+        budget: "mid",
+        maxTokens: 2000,
+      }),
+    (result) =>
+      JSON.stringify(result).includes(importMarker) &&
+      JSON.stringify(result).includes(importKeptToolMarker) &&
+      !JSON.stringify(result).includes(importNoiseMarker),
+    { attempts: config.attempts, delayMs: 2000 },
+  );
+  recorder.step("document_tag_migration_recall_ok");
 
   recorder.step("success", {
     bankId: config.bankId,
