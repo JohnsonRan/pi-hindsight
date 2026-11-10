@@ -10,8 +10,8 @@ Pi Hindsight 1.0 is a Pi-first Hindsight integration. This page is the support c
 | npm                         | `>=10`                                                                                                                                                                                                                      | `package.json#engines.npm`                                           |
 | Pi runtime packages         | Tested with the `@earendil-works/pi-*` versions pinned in `devDependencies`; peer dependencies accept Pi runtime packages supplied by the host Pi installation.                                                             | `package.json#devDependencies` and `package.json#peerDependencies`   |
 | TypeBox                     | `>=1.1.24 <2`                                                                                                                                                                                                               | `package.json#peerDependencies.typebox`                              |
-| Hindsight TypeScript client | `@vectorize-io/hindsight-client ^1.0.0`                                                                                                                                                                                     | `package.json#dependencies`                                          |
-| Hindsight server            | **Hindsight 0.8+** with append `update_mode` support, compatible with `@vectorize-io/hindsight-client ^1.0.0`. Knowledge pages need server routes that match the 1.0 client; other advanced surfaces stay capability-gated. | `/hindsight:doctor`, live smoke, and official Hindsight API behavior |
+| Hindsight TypeScript client | `@vectorize-io/hindsight-client ^1.2.1`                                                                                                                                                                                     | `package.json#dependencies`                                          |
+| Hindsight server            | **Hindsight 0.8+** with append `update_mode` support, compatible with `@vectorize-io/hindsight-client ^1.2.1`. Knowledge pages need server routes that match the 1.2 client; other advanced surfaces stay capability-gated. | `/hindsight:doctor`, live smoke, and official Hindsight API behavior |
 
 ## Required Hindsight capabilities
 
@@ -28,7 +28,13 @@ If append retain is unavailable, live automatic retain is not considered support
 
 Hindsight 0.10 retired `GET /banks/{id}/profile` (HTTP 410 Gone). Bank ensure, status, guided setup, import target validation, `hindsight_bank` get, and live smoke use `GET /v1/default/banks?q=` with an exact `bank_id` match for existence. Health fallback uses that same list-banks endpoint as a server reachability ping and does not require an exact id match. That is not a public `list_banks` tool. `GET /banks/{id}/config` is not an existence check: it can 200 for a missing bank.
 
-With `@vectorize-io/hindsight-client` 1.0, recall and reflect retry when the server answers 429 or 503 (up to 3 attempts, honouring `Retry-After` with jitter). The total wait is still bounded by `hindsight.timeoutMs`. Retain is never retried by the client; failed retains stay in the local retain queue.
+With `@vectorize-io/hindsight-client` 1.2.1, recall and reflect retry when the server answers 429 or 503 (up to 3 attempts, honouring `Retry-After` with jitter). The total wait is still bounded by `hindsight.timeoutMs`. Retain is never retried by the client; failed retains stay in the local retain queue.
+
+## Creation input validation
+
+Hindsight 1.2.1 creation IDs must be non-empty, at most 192 UTF-8 bytes, and contain neither control characters nor `/`. Bank IDs must not start with `_`; mental-model IDs may. Pi validates these rules before creating a bank or a caller-named mental model. Existing IDs are not revalidated for read, update, refresh, or delete.
+
+Knowledge-page and mental-model `maxTokens` must be integers from 256 through 8192 when supplied for create/update, including dry-run previews. Omit the field to preserve the server default. The bundled knowledge-page seed remains 4096 tokens.
 
 ## Capability-gated surfaces
 

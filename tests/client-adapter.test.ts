@@ -4,6 +4,7 @@ import { PI_HINDSIGHT_USER_AGENT } from "../extensions/version.js";
 
 const mocks = vi.hoisted(() => ({
   constructor: vi.fn(),
+  createBank: vi.fn(async () => ({ bank_id: "bank" })),
   retain: vi.fn(async () => ({ accepted: true })),
   retainBatch: vi.fn(async () => ({ accepted: true })),
   listMentalModels: vi.fn(async () => ({ mental_models: [] })),
@@ -31,6 +32,7 @@ vi.mock("@vectorize-io/hindsight-client", async (importOriginal) => {
     HindsightClient: vi.fn(function (options) {
       mocks.constructor(options);
       return {
+        createBank: mocks.createBank,
         retain: mocks.retain,
         retainBatch: mocks.retainBatch,
         listMentalModels: mocks.listMentalModels,
@@ -57,6 +59,7 @@ vi.mock("@vectorize-io/hindsight-client", async (importOriginal) => {
 describe("Hindsight client adapter", () => {
   beforeEach(() => {
     mocks.constructor.mockClear();
+    mocks.createBank.mockClear();
     mocks.retain.mockClear();
     mocks.retainBatch.mockClear();
     mocks.listMentalModels.mockClear();
@@ -140,6 +143,57 @@ describe("Hindsight client adapter", () => {
       }),
     );
   });
+
+  it("validates creation IDs without blocking access to existing IDs", async () => {
+    const { createHindsightClient } = await import("../extensions/client/client.js");
+    const client = createHindsightClient(DEFAULT_CONFIG);
+
+    await expect(client.createBank!("bad/bank")).rejects.toThrow("must not contain '/'");
+    await expect(
+      client.createMentalModel!("bank", "Model", "query", { id: "bad/id" }),
+    ).rejects.toThrow("must not contain '/'");
+    expect(mocks.createBank).not.toHaveBeenCalled();
+    expect(mocks.createMentalModel).not.toHaveBeenCalled();
+
+    await client.createBank!("Team Notes");
+    await client.getMentalModel!("bank", "legacy/id");
+    await client.updateMentalModel!("bank", "legacy/id", { name: "Updated" });
+    await client.refreshMentalModel!("bank", "legacy/id");
+    await client.deleteMentalModel!("bank", "legacy/id", { dryRun: false });
+    await client.getBankConfig!("legacy/bank");
+    await client.updateBankConfig!("legacy/bank", { retainMission: "Updated" });
+    expect(mocks.createBank).toHaveBeenCalledOnce();
+    expect(mocks.getMentalModel).toHaveBeenCalledWith("bank", "legacy/id", expect.anything());
+    expect(mocks.updateMentalModel).toHaveBeenCalledWith("bank", "legacy/id", expect.anything());
+    expect(mocks.refreshMentalModel).toHaveBeenCalledWith("bank", "legacy/id", expect.anything());
+    expect(mocks.deleteMentalModel).toHaveBeenCalledWith("bank", "legacy/id", expect.anything());
+    expect(mocks.getBankConfig).toHaveBeenCalledWith("legacy/bank", expect.anything());
+    expect(mocks.updateBankConfig).toHaveBeenCalledWith("legacy/bank", expect.anything());
+  });
+
+  it.each([255, 8193])(
+    "rejects page and model token budgets before SDK calls: %i",
+    async (maxTokens) => {
+      const { createHindsightClient } = await import("../extensions/client/client.js");
+      const client = createHindsightClient(DEFAULT_CONFIG);
+      await expect(
+        client.createMentalModel!("bank", "Model", "query", { maxTokens }),
+      ).rejects.toThrow("256 and 8192");
+      await expect(client.updateMentalModel!("bank", "model", { maxTokens })).rejects.toThrow(
+        "256 and 8192",
+      );
+      await expect(
+        client.createKnowledgePage!("bank", "Page", "query", { maxTokens }),
+      ).rejects.toThrow("256 and 8192");
+      await expect(client.updateKnowledgeNode!("bank", "page", { maxTokens })).rejects.toThrow(
+        "256 and 8192",
+      );
+      expect(mocks.createMentalModel).not.toHaveBeenCalled();
+      expect(mocks.updateMentalModel).not.toHaveBeenCalled();
+      expect(mocks.createKnowledgePage).not.toHaveBeenCalled();
+      expect(mocks.updateKnowledgeNode).not.toHaveBeenCalled();
+    },
+  );
 
   it("wraps mental-model and bank-config control-plane methods", async () => {
     const { createHindsightClient } = await import("../extensions/client/client.js");

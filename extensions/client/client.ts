@@ -13,6 +13,7 @@ import type { HindsightLikeClient, ResolvedConfig } from "../types.js";
 import { PI_HINDSIGHT_USER_AGENT } from "../version.js";
 import { withRetry } from "./client-retry.js";
 import { installFetchRequestCompat } from "./fetch-compat.js";
+import { validateCreationId, validatePageMaxTokens } from "./request-validation.js";
 import { withTimeout } from "./timeout.js";
 
 type ReflectOptions = Parameters<HindsightLikeClient["reflect"]>[2];
@@ -217,6 +218,7 @@ export function createHindsightClient(config: ResolvedConfig): HindsightLikeClie
     createBank: (...args) =>
       withTimeout("hindsight createBank", timeoutMs, (signal) => {
         const [bankId, options] = args;
+        validateCreationId(bankId, "Bank");
         return raw.createBank(bankId, { ...options, signal });
       }),
     getBankProfile: (...args) =>
@@ -306,14 +308,21 @@ export function createHindsightClient(config: ResolvedConfig): HindsightLikeClie
       withTimeout(
         "hindsight createMentalModel",
         timeoutMs,
-        (signal) => raw.createMentalModel(bankId, name, sourceQuery, { ...options, signal }),
+        (signal) => {
+          if (options?.id !== undefined) validateCreationId(options.id, "Mental model");
+          validatePageMaxTokens(options?.maxTokens);
+          return raw.createMentalModel(bankId, name, sourceQuery, { ...options, signal });
+        },
         options?.signal,
       ),
     updateMentalModel: (bankId, mentalModelId, options) =>
       withTimeout(
         "hindsight updateMentalModel",
         timeoutMs,
-        (signal) => raw.updateMentalModel(bankId, mentalModelId, { ...options, signal }),
+        (signal) => {
+          validatePageMaxTokens(options?.maxTokens);
+          return raw.updateMentalModel(bankId, mentalModelId, { ...options, signal });
+        },
         options?.signal,
       ),
     refreshMentalModel: (bankId, mentalModelId, options) =>
@@ -354,7 +363,10 @@ export function createHindsightClient(config: ResolvedConfig): HindsightLikeClie
       withTimeout(
         "hindsight createKnowledgePage",
         timeoutMs,
-        (signal) => raw.createKnowledgePage(bankId, name, sourceQuery, { ...options, signal }),
+        (signal) => {
+          validatePageMaxTokens(options?.maxTokens);
+          return raw.createKnowledgePage(bankId, name, sourceQuery, { ...options, signal });
+        },
         options?.signal,
       ),
     getKnowledgePage: (bankId, pageId, options) =>
@@ -375,7 +387,10 @@ export function createHindsightClient(config: ResolvedConfig): HindsightLikeClie
       withTimeout(
         "hindsight updateKnowledgeNode",
         timeoutMs,
-        (signal) => raw.updateKnowledgeNode(bankId, nodeId, { ...options, signal }),
+        (signal) => {
+          validatePageMaxTokens(options?.maxTokens);
+          return raw.updateKnowledgeNode(bankId, nodeId, { ...options, signal });
+        },
         options?.signal,
       ),
     deleteKnowledgeNode: (bankId, nodeId, options) =>

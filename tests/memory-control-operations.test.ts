@@ -85,6 +85,52 @@ describe("memory control operations", () => {
     );
   });
 
+  it("validates model IDs and page budgets before dry-run previews", async () => {
+    const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-ctrl-validation-"));
+    const createMentalModel = vi.fn();
+    const createKnowledgePage = vi.fn();
+    const ops = createControlOperations({
+      getClient: () => ({
+        retain: async () => undefined,
+        recall: async () => [],
+        reflect: async () => ({}),
+        createMentalModel,
+        createKnowledgePage,
+      }),
+      getConfig: () => DEFAULT_CONFIG,
+      getProjectBankId: () => "coding",
+    });
+    await expect(
+      ops.mentalModel({ action: "create", cwd, name: "Model", sourceQuery: "query", id: "bad/id" }),
+    ).rejects.toThrow("must not contain '/'");
+    for (const action of ["create", "update"] as const) {
+      await expect(
+        ops.mentalModel({
+          action,
+          cwd,
+          id: "model",
+          name: "Model",
+          sourceQuery: "query",
+          maxTokens: 255,
+        }),
+      ).rejects.toThrow("256 and 8192");
+    }
+    for (const action of ["create_page", "update"] as const) {
+      await expect(
+        ops.knowledge({
+          action,
+          cwd,
+          id: "page",
+          name: "Page",
+          sourceQuery: "query",
+          maxTokens: 8193,
+        }),
+      ).rejects.toThrow("256 and 8192");
+    }
+    expect(createMentalModel).not.toHaveBeenCalled();
+    expect(createKnowledgePage).not.toHaveBeenCalled();
+  });
+
   it("delete mental model defaults to dry-run", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-ctrl-del-"));
     const deleteMentalModel = vi.fn(async (_b, _id, opts) => ({ dryRun: opts?.dryRun }));
