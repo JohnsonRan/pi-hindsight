@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.14.0](https://github.com/JohnsonRan/pi-hindsight/compare/v0.13.0...v0.14.0) (2026-11-10)
+
+
+### Features
+
+* **client:** adopt the Hindsight 1.2.1 client and Pages API ([e78d049](https://github.com/JohnsonRan/pi-hindsight/commit/e78d04954c471c2f919ac4e16d767d3e3d7e0430))
+* **config:** add scope.extraScopeTags for foreign writers' scope tags ([c65e5ba](https://github.com/JohnsonRan/pi-hindsight/commit/c65e5ba4f9f6a918003b6b5023378329eb44afa2))
+* **config:** allowlist userScopeTags on hindsight_config ([#630](https://github.com/JohnsonRan/pi-hindsight/issues/630)) ([d5c6f6e](https://github.com/JohnsonRan/pi-hindsight/commit/d5c6f6e6dc309830a4dd70b6bef12f029a1c35a8)), refs [#622](https://github.com/JohnsonRan/pi-hindsight/issues/622)
+* **config:** probe host for config paths instead of hardcoding .pi ([82e87a1](https://github.com/JohnsonRan/pi-hindsight/commit/82e87a1f23d23501f52fb11ca2d9bd8f3c1b7ef7))
+* **recall:** let explicit recall prune and deduplicate results ([6404932](https://github.com/JohnsonRan/pi-hindsight/commit/6404932d0b17cc8ad4eac2e6b14b295a65f43dd8))
+
+
+### Bug Fixes
+
+* **banks:** use list-banks existence for import and bankGet ([#628](https://github.com/JohnsonRan/pi-hindsight/issues/628)) ([60b1b93](https://github.com/JohnsonRan/pi-hindsight/commit/60b1b931942d91135b464fa55592ad29e351abda))
+* **import:** canonicalize mapping cwd with native realpath ([08ffc0b](https://github.com/JohnsonRan/pi-hindsight/commit/08ffc0bfb97193a733c5765dba38422db66ed3f6))
+* **mental-models:** bring mental models back into automatic context ([e80f2ab](https://github.com/JohnsonRan/pi-hindsight/commit/e80f2abf6f840e6a879b953be0cf42f646993607))
+* **mm:** derive mental-model tags from bank observation scopes ([83be07c](https://github.com/JohnsonRan/pi-hindsight/commit/83be07c14fff08f9afd0dc71b082c7f50b86ea38)), refs [#647](https://github.com/JohnsonRan/pi-hindsight/issues/647)
+* **retain:** recover the first JSON document from torn cursor stores ([314cd0a](https://github.com/JohnsonRan/pi-hindsight/commit/314cd0a7073af433a3f945067090996cea7a5bcc))
+* **scripts:** run the package install smoke on Windows ([#24](https://github.com/JohnsonRan/pi-hindsight/issues/24)) ([4ed75d9](https://github.com/JohnsonRan/pi-hindsight/commit/4ed75d9af6fe229b4e641422f7f6c8797f6cfabc)), refs [#13](https://github.com/JohnsonRan/pi-hindsight/issues/13)
+
 ## [0.13.0](https://github.com/luxus/pi-hindsight/compare/v0.12.0...v0.13.0) (2026-09-16)
 
 
