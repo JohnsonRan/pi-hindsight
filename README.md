@@ -56,6 +56,7 @@ See the [getting started guide](https://luxus.github.io/pi-hindsight/start/getti
 - Recall injection is ephemeral; recalled memory is not written back into transcripts.
 - Automatic retain redacts common secrets before writing memory.
 - Exact document deletion requires exact bank ID, exact document ID, and `confirm: true`.
+- Scope-tag migration previews one owned document by default; writes require exact Coding Bank/document IDs, `dryRun: false`, and `confirm: true`.
 
 See [memory behavior](https://luxus.github.io/pi-hindsight/concepts/memory-behavior/) and [session memory modes](https://luxus.github.io/pi-hindsight/concepts/session-memory-modes/) for details.
 

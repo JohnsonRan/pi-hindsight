@@ -102,6 +102,7 @@ Every code change must preserve these rules:
 - **Recall Blocks** must not be persisted into transcript history or retained back into Hindsight.
 - **User Bank** writes are always explicit; automatic retain never writes to the User Bank.
 - Tags define scope and visibility; metadata records provenance.
+- Scope-tag repair is explicit and single-document: require exact selected Coding Bank/document IDs, verified project ownership, dry-run by default, and `dryRun: false` plus `confirm: true` for incremental tag patches. Never silently rewrite or replace the full tag set.
 - Retain paths are queue-first.
 - Debug visibility is opt-in and must redact secrets before persistence.
 

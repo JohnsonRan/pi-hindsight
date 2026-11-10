@@ -32,7 +32,7 @@ Practical steps:
 
 1. Open `/hindsight` → guided setup (`g`) **or** set `banks.project.bankId` / `PI_HINDSIGHT_PROJECT_BANK_ID`.
 2. Prefer `scope.projectIdStrategy: "remote"` (default) or pin `scope.projectId` for weak basename-only repos.
-3. Optional: ask the agent to run `hindsight_scope_migrate` (dry-run only) for a local plan/receipt. It never rewrites Hindsight tags.
+3. Optional: ask the agent to run `hindsight_scope_migrate` with its default `plan` action for a local read-only plan/receipt. That action never rewrites Hindsight tags.
 
 ### 2. Full adopt: shared coding bank
 
@@ -71,11 +71,30 @@ Status shows **Setup: required** and startup can warn with this guide’s URL wh
 
 ## Inspect without rewriting
 
-| Tool / surface               | Role                                                               |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `/hindsight` status / doctor | Shows project tag, bank selection, path-derived warnings           |
-| `hindsight_scope_migrate`    | Dry-run plan + local receipt; **never** rewrites tags or documents |
-| Guided setup                 | Writes bank ids, profile, and setup completion                     |
+| Tool / surface               | Role                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `/hindsight` status / doctor | Shows project tag, bank selection, path-derived warnings                                          |
+| `hindsight_scope_migrate`    | Default read-only plan + local receipt; explicit confirmed single-document tag repair is separate |
+| Guided setup                 | Writes bank ids, profile, and setup completion                                                    |
+
+## Repair one owned document
+
+Hindsight 1.2.1+ supports incremental document tag patches without re-retaining text. Run the default migration plan first to inspect the current project and legacy tags, then preview an exact document in the selected Coding Bank:
+
+```json
+{
+  "action": "tag_document",
+  "bankId": "pi-coding",
+  "documentId": "pi-session:exact-id",
+  "removeLegacyTag": true
+}
+```
+
+Review the returned `addTags`/`removeTags`. Applying the same request additionally requires `"dryRun": false` and `"confirm": true`. Defaults only add the current project tag; `removeLegacyTag` defaults false. No full tag-set replacement or content change occurs, unrelated tags are preserved, and repeated repairs are no-ops.
+
+The bank ID must be the exact current Coding Bank ID. The document must already carry the current project tag or current legacy repo tag, with no foreign project tags. Unknown ownership, another machine's old path-hash alone, and mixed-project documents are rejected rather than guessed. Use deliberate export/import or transcript reimport for those cases. No bulk/cross-bank/Life Bank migration is exposed.
+
+This does not end the dual-tag window: later retains can add the legacy tag again. No user data is rewritten automatically.
 
 ## Related
 

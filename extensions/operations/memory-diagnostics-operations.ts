@@ -12,6 +12,8 @@ import {
   buildScopeMigratePlan,
   writeScopeMigrateReceipt,
   type ScopeMigratePlan,
+  migrateDocumentScopeTags,
+  type DocumentScopeMigrationOptions,
 } from "./scope-migrate.js";
 
 export function createDiagnosticsOperations(deps: MemoryOperationsDeps) {
@@ -80,6 +82,16 @@ export function createDiagnosticsOperations(deps: MemoryOperationsDeps) {
         limit: args.limit ?? DEFAULT_GIT_SEED_LIMIT,
         dryRun: args.dryRun ?? true,
         ...(args.flush !== undefined ? { flush: args.flush } : {}),
+      });
+    },
+
+    async scopeMigrateDocument(cwd: string, options: DocumentScopeMigrationOptions) {
+      return migrateDocumentScopeTags({
+        ...options,
+        cwd,
+        config: deps.getConfig(),
+        projectBankId: deps.getProjectBankId(),
+        client: deps.getClient(),
       });
     },
 
