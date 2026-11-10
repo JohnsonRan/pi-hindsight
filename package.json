@@ -89,7 +89,7 @@
     "astro": "^7.0.6",
     "astro-mermaid": "^2.0.1",
     "mermaid": "^11.14.0",
-    "oxfmt": "^0.56.0",
+    "oxfmt": "^0.78.0",
     "oxlint": "^1.61.0",
     "oxlint-tsgolint": "^7.0.2001",
     "starlight-llm-button": "^0.0.8",
