@@ -42,6 +42,40 @@ function requireTool(catalog: ReturnType<typeof createOperationCatalog>, name: s
 }
 
 describe("operation catalog", () => {
+  it("advertises server-supported page and model token budgets", () => {
+    const catalog = createOperationCatalog({
+      getClient: () => client(),
+      getConfig: () => DEFAULT_CONFIG,
+      getProjectBankId: () => "project-bank",
+    });
+    for (const name of ["hindsight_mental_model", "hindsight_knowledge"]) {
+      const properties = (requireTool(catalog, name).parameters as JsonSchema).properties ?? {};
+      expect(properties.maxTokens).toMatchObject({ minimum: 256, maximum: 8192 });
+    }
+  });
+
+  it.each([true, false])(
+    "rejects explicit empty creation IDs with dryRun=%s but permits omitted IDs",
+    async (dryRun) => {
+      const cwd = mkdtempSync(join(tmpdir(), "pi-hindsight-catalog-empty-id-"));
+      const createMentalModel = vi.fn(async () => ({ id: "generated-id" }));
+      const catalog = createOperationCatalog({
+        getClient: () => ({ ...client(), createMentalModel }),
+        getConfig: () => DEFAULT_CONFIG,
+        getProjectBankId: () => "project-bank",
+      });
+      const tool = requireTool(catalog, "hindsight_mental_model");
+      const params = { action: "create", name: "Model", sourceQuery: "query", dryRun };
+      const ctx = { cwd, sessionManager: { getSessionFile: () => undefined } } as never;
+      await expect(
+        tool.execute("empty-id", { ...params, id: "" }, undefined, undefined, ctx),
+      ).rejects.toThrow("Mental model id must not be empty");
+      expect(createMentalModel).not.toHaveBeenCalled();
+      await tool.execute("omitted-id", params, undefined, undefined, ctx);
+      expect(createMentalModel).toHaveBeenCalledTimes(dryRun ? 0 : 1);
+    },
+  );
+
   it("registers expandable renderers for explicit memory tool results", () => {
     const catalog = createOperationCatalog({
       getClient: () => client(),

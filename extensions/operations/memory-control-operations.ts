@@ -7,6 +7,7 @@ import type { MemoryOperationsDeps } from "./memory-operation-types.js";
 import { isMemorySetupComplete, setupRequiredMessage } from "../config/setup-gate.js";
 import { configureMemory, type ProjectConfigPatchInput } from "../config/config-writer.js";
 import { seedKnowledgePages } from "../banks/knowledge-page-seed.js";
+import { validateCreationId, validatePageMaxTokens } from "../client/request-validation.js";
 import type { HindsightLikeClient, ResolvedConfig, TagsMatch } from "../types.js";
 
 /** Keys agents may read/patch via hindsight_config (no raw secrets). */
@@ -375,6 +376,8 @@ export function createControlOperations(deps: MemoryOperationsDeps) {
           return { bankId, result: await get(bankId, args.id) };
         }
         case "create": {
+          if (args.id !== undefined) validateCreationId(args.id, "Mental model");
+          validatePageMaxTokens(args.maxTokens);
           if (!args.name?.trim() || !args.sourceQuery?.trim()) {
             throw new Error("name and sourceQuery are required for create");
           }
@@ -434,6 +437,7 @@ export function createControlOperations(deps: MemoryOperationsDeps) {
         }
         case "update": {
           if (!args.id) throw new Error("id is required for update");
+          validatePageMaxTokens(args.maxTokens);
           const options = {
             ...(args.name !== undefined ? { name: args.name } : {}),
             ...(args.sourceQuery !== undefined ? { sourceQuery: args.sourceQuery } : {}),
@@ -554,6 +558,7 @@ export function createControlOperations(deps: MemoryOperationsDeps) {
           return { bankId, result: await exp(bankId) };
         }
         case "create_page": {
+          validatePageMaxTokens(args.maxTokens);
           if (!args.name?.trim() || !args.sourceQuery?.trim()) {
             throw new Error("name and sourceQuery are required for create_page");
           }
@@ -606,6 +611,7 @@ export function createControlOperations(deps: MemoryOperationsDeps) {
         }
         case "update": {
           if (!args.id) throw new Error("id is required for update");
+          validatePageMaxTokens(args.maxTokens);
           const options: {
             name?: string;
             parentId?: string | null;
