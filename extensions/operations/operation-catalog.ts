@@ -737,7 +737,7 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
         name: Type.Optional(Type.String()),
         sourceQuery: Type.Optional(Type.String()),
         tags: Type.Optional(Type.Array(Type.String())),
-        maxTokens: Type.Optional(Type.Integer({ minimum: 1 })),
+        maxTokens: Type.Optional(Type.Integer({ minimum: 256, maximum: 8192 })),
         tagsMatch: Type.Optional(tagMatchSchema),
         dryRun: Type.Optional(
           Type.Boolean({
@@ -814,7 +814,7 @@ export function createOperationCatalog(deps: MemoryOperationsDeps): OperationCat
           }),
         ),
         tags: Type.Optional(Type.Array(Type.String())),
-        maxTokens: Type.Optional(Type.Integer({ minimum: 1 })),
+        maxTokens: Type.Optional(Type.Integer({ minimum: 256, maximum: 8192 })),
         tagsMatch: Type.Optional(tagMatchSchema),
         dryRun: Type.Optional(
           Type.Boolean({

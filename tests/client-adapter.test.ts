@@ -12,14 +12,14 @@ const mocks = vi.hoisted(() => ({
   updateMentalModel: vi.fn(async () => ({ id: "mm1" })),
   refreshMentalModel: vi.fn(async () => ({ id: "mm1" })),
   deleteMentalModel: vi.fn(async () => undefined),
-  getKnowledgeBaseTree: vi.fn(async () => ({ nodes: [] })),
-  createKnowledgeFolder: vi.fn(async () => ({ id: "folder1" })),
-  createKnowledgePage: vi.fn(async () => ({ id: "page1", operation_id: "op1" })),
-  getKnowledgePage: vi.fn(async () => ({ id: "page1", markdown: "# Page" })),
-  searchKnowledgeBase: vi.fn(async () => ({ results: [] })),
-  updateKnowledgeNode: vi.fn(async () => ({ id: "page1" })),
-  deleteKnowledgeNode: vi.fn(async () => undefined),
-  exportKnowledgeBase: vi.fn(async () => ({ files: [] })),
+  getPageTree: vi.fn(async () => ({ nodes: [] })),
+  createPageFolder: vi.fn(async () => ({ id: "folder1" })),
+  createPage: vi.fn(async () => ({ id: "page1", operation_id: "op1" })),
+  getPage: vi.fn(async () => ({ id: "page1", markdown: "# Page" })),
+  searchPages: vi.fn(async () => ({ results: [] })),
+  updatePageNode: vi.fn(async () => ({ id: "page1" })),
+  deletePageNode: vi.fn(async () => undefined),
+  exportPages: vi.fn(async () => ({ files: [] })),
   updateBankConfig: vi.fn(async () => ({ bank_id: "bank" })),
   getBankConfig: vi.fn(async () => ({ bank_id: "bank" })),
 }));
@@ -39,14 +39,14 @@ vi.mock("@vectorize-io/hindsight-client", async (importOriginal) => {
         updateMentalModel: mocks.updateMentalModel,
         refreshMentalModel: mocks.refreshMentalModel,
         deleteMentalModel: mocks.deleteMentalModel,
-        getKnowledgeBaseTree: mocks.getKnowledgeBaseTree,
-        createKnowledgeFolder: mocks.createKnowledgeFolder,
-        createKnowledgePage: mocks.createKnowledgePage,
-        getKnowledgePage: mocks.getKnowledgePage,
-        searchKnowledgeBase: mocks.searchKnowledgeBase,
-        updateKnowledgeNode: mocks.updateKnowledgeNode,
-        deleteKnowledgeNode: mocks.deleteKnowledgeNode,
-        exportKnowledgeBase: mocks.exportKnowledgeBase,
+        getPageTree: mocks.getPageTree,
+        createPageFolder: mocks.createPageFolder,
+        createPage: mocks.createPage,
+        getPage: mocks.getPage,
+        searchPages: mocks.searchPages,
+        updatePageNode: mocks.updatePageNode,
+        deletePageNode: mocks.deletePageNode,
+        exportPages: mocks.exportPages,
         updateBankConfig: mocks.updateBankConfig,
         getBankConfig: mocks.getBankConfig,
       };
@@ -65,14 +65,14 @@ describe("Hindsight client adapter", () => {
     mocks.updateMentalModel.mockClear();
     mocks.refreshMentalModel.mockClear();
     mocks.deleteMentalModel.mockClear();
-    mocks.getKnowledgeBaseTree.mockClear();
-    mocks.createKnowledgeFolder.mockClear();
-    mocks.createKnowledgePage.mockClear();
-    mocks.getKnowledgePage.mockClear();
-    mocks.searchKnowledgeBase.mockClear();
-    mocks.updateKnowledgeNode.mockClear();
-    mocks.deleteKnowledgeNode.mockClear();
-    mocks.exportKnowledgeBase.mockClear();
+    mocks.getPageTree.mockClear();
+    mocks.createPageFolder.mockClear();
+    mocks.createPage.mockClear();
+    mocks.getPage.mockClear();
+    mocks.searchPages.mockClear();
+    mocks.updatePageNode.mockClear();
+    mocks.deletePageNode.mockClear();
+    mocks.exportPages.mockClear();
     mocks.updateBankConfig.mockClear();
     mocks.getBankConfig.mockClear();
   });
@@ -213,13 +213,13 @@ describe("Hindsight client adapter", () => {
     const client = createHindsightClient(DEFAULT_CONFIG);
 
     await client.getKnowledgeBaseTree!("bank");
-    expect(mocks.getKnowledgeBaseTree).toHaveBeenCalledWith(
+    expect(mocks.getPageTree).toHaveBeenCalledWith(
       "bank",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 
     await client.createKnowledgeFolder!("bank", "Specs", { parentId: null });
-    expect(mocks.createKnowledgeFolder).toHaveBeenCalledWith(
+    expect(mocks.createPageFolder).toHaveBeenCalledWith(
       "bank",
       "Specs",
       expect.objectContaining({ parentId: null, signal: expect.any(AbortSignal) }),
@@ -235,7 +235,7 @@ describe("Hindsight client adapter", () => {
         tagsMatch: "all_strict",
       },
     });
-    expect(mocks.createKnowledgePage).toHaveBeenCalledWith(
+    expect(mocks.createPage).toHaveBeenCalledWith(
       "bank",
       "API",
       "What is the API shape?",
@@ -247,35 +247,35 @@ describe("Hindsight client adapter", () => {
     );
 
     await client.getKnowledgePage!("bank", "page1");
-    expect(mocks.getKnowledgePage).toHaveBeenCalledWith(
+    expect(mocks.getPage).toHaveBeenCalledWith(
       "bank",
       "page1",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 
     await client.searchKnowledgeBase!("bank", "routing", { limit: 5 });
-    expect(mocks.searchKnowledgeBase).toHaveBeenCalledWith(
+    expect(mocks.searchPages).toHaveBeenCalledWith(
       "bank",
       "routing",
       expect.objectContaining({ limit: 5, signal: expect.any(AbortSignal) }),
     );
 
     await client.updateKnowledgeNode!("bank", "page1", { name: "API v2" });
-    expect(mocks.updateKnowledgeNode).toHaveBeenCalledWith(
+    expect(mocks.updatePageNode).toHaveBeenCalledWith(
       "bank",
       "page1",
       expect.objectContaining({ name: "API v2", signal: expect.any(AbortSignal) }),
     );
 
     await client.deleteKnowledgeNode!("bank", "page1");
-    expect(mocks.deleteKnowledgeNode).toHaveBeenCalledWith(
+    expect(mocks.deletePageNode).toHaveBeenCalledWith(
       "bank",
       "page1",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 
     await client.exportKnowledgeBase!("bank");
-    expect(mocks.exportKnowledgeBase).toHaveBeenCalledWith(
+    expect(mocks.exportPages).toHaveBeenCalledWith(
       "bank",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );

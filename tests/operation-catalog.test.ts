@@ -42,6 +42,18 @@ function requireTool(catalog: ReturnType<typeof createOperationCatalog>, name: s
 }
 
 describe("operation catalog", () => {
+  it("advertises server-supported page and model token budgets", () => {
+    const catalog = createOperationCatalog({
+      getClient: () => client(),
+      getConfig: () => DEFAULT_CONFIG,
+      getProjectBankId: () => "project-bank",
+    });
+    for (const name of ["hindsight_mental_model", "hindsight_knowledge"]) {
+      const properties = (requireTool(catalog, name).parameters as JsonSchema).properties ?? {};
+      expect(properties.maxTokens).toMatchObject({ minimum: 256, maximum: 8192 });
+    }
+  });
+
   it("registers expandable renderers for explicit memory tool results", () => {
     const catalog = createOperationCatalog({
       getClient: () => client(),
